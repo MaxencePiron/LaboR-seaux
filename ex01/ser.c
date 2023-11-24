@@ -1,0 +1,73 @@
+/*--------------------------------------
+  cphex\ser.c 
+  ex01 un seveur recevant des des chaines de caractères
+----------------------------------------*/
+
+#include <stdio.h>
+#include <string.h>
+#include "../udplib/udplib.h"
+
+void die(char *s)
+{
+    perror(s);
+    exit(1);
+}
+
+int main(int argc,char *argv[])
+{
+ int rc ;
+ int Desc ;
+ 
+ struct sockaddr_in sthis ; /* this ce programme */
+ struct sockaddr_in sos ; /* s = serveur */
+ struct sockaddr_in sor ; /* r = remote */
+
+ u_long  IpSocket ;
+ u_short PortSocket ;
+ 
+ char message[100] ;
+ char *reponse ;
+ 
+ int tm ;
+
+ memset(&sthis,0,sizeof(struct sockaddr_in)) ;
+ memset(&sos,0,sizeof(struct sockaddr_in)) ; 
+ memset(&sor,0,sizeof(struct sockaddr_in)) ; 
+ 
+ printf("Ceci est le serveur\n") ;
+ if ( argc!=3)
+ {
+  printf("ser ser port cli\n") ;
+  exit(1) ;
+ }
+ 
+ /* Récupération IP & port   */
+ IpSocket= inet_addr(argv[1]);
+ PortSocket = atoi(argv[2]);
+ // Desc = CreateSockets(&psoo,&psos,,atoi(argv[2]),argv[3],atoi(argv[4])) ;
+ Desc=creer_socket(SOCK_DGRAM,&IpSocket,PortSocket,&sthis);
+ 
+ if ( Desc == -1 )
+    die("CreateSockets:") ;
+       
+ else
+    fprintf(stderr,"CreateSockets %d\n",Desc) ;
+ 
+ 
+ tm = sizeof(message) ;
+ rc = ReceiveDatagram( Desc, message,tm, &sor ) ;
+ if ( rc == -1 )
+    die("ReceiveDatagram") ;
+ else
+   fprintf(stderr,"bytes reçus:%d:%s\n",rc,message ) ;
+ 
+ /* reponse avec psos */
+ reponse = "bonjour client 1" ;
+ rc = SendDatagram(Desc,reponse,strlen(reponse)+1 ,&sor ) ;
+ if ( rc == -1 )
+    die("SendDatagram") ;
+ else
+   fprintf(stderr,"bytes envoyés:%d\n",rc ) ;
+ 
+ close(Desc) ;
+}

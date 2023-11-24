@@ -1,0 +1,191 @@
+
+
+
+
+/*--------------------------------------------------------------------------------------------------------------------------------------
+ -------------------------------------------------------------------
+ Vanstapel Herman EPL
+
+ L'objectif de ce programme est de construire un noyau de firewall
+
+ version 2004
+ Utilisation d'une trame.
+---------------------------------------------------------------------
+ C'est la couche liaison
+---------------------------------------------------------------------------------------------------------------------------------------*/
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "../evlib/evlib.h"
+#include "../physlib/physlib.h"
+#include "../protocol/protocol.h"
+
+#define DROP 1
+#define ACCEPT 2
+
+struct Regle {
+      int LigneEntree ;
+      int IPSource ;
+      int IPDestination ;
+      int PortSource ;
+      int PortDestination ;
+      int Protocole ;
+      int Politique ;
+}	
+
+int FilragePaquet(int LigneEntree,struct Regle TableFiltrage[],int NbrRegles,struct Paquet* PP,int *R)
+{
+ struct Segment *PS ;
+ int i = 0 ;
+ PS = ( struct Segment * ) PP->Buffer ;
+ for( i = 0 ;i < NbrRegles ; i++ )
+ {
+  *R= i+1 ;
+  printf("\nReseau: Regle %d",*R ) ;
+  if ( (TableFiltrage[i].LigneEntree !=0) && (TableFiltrage[i].LigneEntree != LigneEntree ))
+     continue ;
+  if ( (TableFiltrage[i].IPSource!=0) && (TableFiltrage[i].IPSource  != PP->IPSource ))
+     continue ;
+  if ( (TableFiltrage[i].IPDestination!=0) && (TableFiltrage[i].IPDestination != PP->IPDestination ))
+     continue ;
+  if ( (TableFiltrage[i].PortSource!=0) && (TableFiltrage[i].PortSource != PS->PortSource ))
+     continue ;
+  if ( (TableFiltrage[i].PortDestination!=0) && (TableFiltrage[i].PortDestination != PS->PortDestination ))
+     continue ;
+  if (TableFiltrage[i].Protocole!= IP)
+     if ( (TableFiltrage[i].Protocole!=0) && (TableFiltrage[i].Protocole != PP->Protocole ))
+        continue ;
+  if(TableFiltrage[i].Politique==DROP)
+    return 1 ;
+  if(TableFiltrage[i].Politique==ACCEPT)
+    return 0 ;
+ }
+ *R = 0 ;
+ return (0 );
+}
+
+/* modifier ici */
+void LectureTableFiltrage(struct TableFiltrage[],int *NbrRegles,int NbrLignes)
+{
+ FILE *FichierRegles ;
+ char Ligne[80] ;
+ int LigneInt, PortSource, PortDestination ;
+ char IP1[80],IP2[80],Politique[80],Protocole[80] ;
+ char NomFichier[80] ;
+ 
+ SaisieChaine("Entrer le fichier de Regles",NomFichier,sizeof NomFichier ) ;
+ FichierRegles = fopen(NomFichier,"r") ;
+ if ( FichierRegles == NULL )
+    {
+     printf("Fichier de filtrage non ouvert \n") ;
+     exit(0) ;
+    }
+ else
+    printf("Ouverture de regles \n") ;
+ *NbrRegles = 0 ;
+ fscanf(FichierRegles,"%s %s %s %d %d %s %s\n",Ligne,IP1,IP2,&PortSource,&PortDestination,Protocole,Politique) ;
+ while(!feof(FichierRegles))
+ {
+  printf("%s %s %s %d %d %s %s\n",Ligne,IPSource,IPDestination,PortSource,PortDestination,Protocole,Politique ) ;
+  if (!strchr(Ligne,'#'))
+  	{ 
+  	 if ( Ipv4ToInt(IP1,&TableFiltrage[*NbrRegles].IPSource)== -1 )
+      	   {
+            printf(" Le paramètre 2 n'est pas une ip\n") ;
+            exit(0) ;
+           }
+  	 if ( Ipv4ToInt(IP2,&TableFiltrage[*NbrRegles].IPDestination)== -1 )
+           {
+            printf(" Le paramètre 3 n'est pas une ip\n") ;
+            exit(0) ;
+      	   }
+  	 if (strcmp(Protocole,"IP")==0 )
+     	   if (( PortSource == 0) && ( PortDestination == 0))
+              TableFiltrage[*NbrRegles].Protocole = IP ;
+           else
+              {
+               printf("placer des ports avec une règle ip non sens \n") ;
+	       exit(0) ;
+              }
+         else
+    	   if (strcmp(Protocole,"UDP")==0 )
+              TableFiltrage[*NbrRegles].Protocole = UDP ;
+           else
+              if (strcmp(Protocole,"TCP")==0 )
+                 TableFiltrage[*NbrRegles].Protocole = TCP ;
+              else
+                 {
+                  printf(" Le paramètre 6 n'est pas un protocole valide \n") ;
+                  exit(0) ;
+                 }
+
+         if (strcmp(Politique,"DROP")==0 )
+            TableFiltrage[*NbrRegles].Politique = DROP ;
+         else
+            if (strcmp(Politique,"ACCEPT")==0 )
+               TableFiltrage[*NbrRegles].Politique = ACCEPT ;
+            else
+               {
+                printf(" Le paramètre 7 n'est pas une politique valide \n") ;
+                exit(0) ;
+               }
+  	LigneInt = atoi(Ligne)
+  	if (LigneInt <= NbrLignes )
+      	   TableFiltrage[*NbrRegles].Ligne = LigneInt ;
+  	else
+     	   {
+
+            printf(" La ligne %d n'existe pas \n",Ligne) ;
+            exit(0) ;
+     	   }
+        TableFiltrage[*NbrRegles].PortSource = PortSource ;
+        TableFiltrage[*NbrRegles].PortDestination = PortDestination ;
+        (*NbrRegles)++ ;
+       }
+  fscanf(FichierRegles,"%s %s %s %d %d %s %s",Ligne,IP1,IP2,&PortSource,&PortDestination,Protocole,Politique) ;
+ }
+ fclose(FichierRegles) ;
+}
+
+void AffichageTableFiltrage(int TableFiltrage[][7],int NbrRegles)
+{
+ int I = 0 ;
+ char Buffer[80] ;
+ while ( I < NbrRegles )
+ {
+  printf("%d ",TableFiltrage[I][0] ) ;
+  Ipv4ToS(TableFiltrage[I][1],Buffer ) ;
+  printf("%s ",Buffer ) ;
+  Ipv4ToS(TableFiltrage[I][2],Buffer ) ;
+  printf("%s ",Buffer ) ;
+  printf("%d ",TableFiltrage[I][3] ) ;
+  printf("%d ",TableFiltrage[I][4] ) ;
+
+  if (TableFiltrage[I][5] == IP )
+      printf("IP ") ;
+  else
+    if (TableFiltrage[I][5] == UDP )
+           printf("UDP ") ;
+    else
+       if (TableFiltrage[I][5] == TCP )
+           printf("TCP ") ;
+       else
+	   {
+	    printf("Politique non connue \n") ;
+	    exit(0) ;
+	   }
+
+  if (TableFiltrage[I][6] == DROP )
+      printf("DROP \n") ;
+  else
+    if (TableFiltrage[I][6] == ACCEPT )
+           printf("ACCEPT \n") ;
+        else
+	   {
+	    printf("Politique non connue \n") ;
+	    exit(0) ;
+	   }
+  I++ ;
+ }
+}

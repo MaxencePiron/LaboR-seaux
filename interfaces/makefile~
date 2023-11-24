@@ -1,0 +1,4 @@
+all:	interfaces.o
+interfaces.o:	interfaces.h	interfaces.c
+	echo "compilation de interfaces"
+	cc -c interfaces.c	
