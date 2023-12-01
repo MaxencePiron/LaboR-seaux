@@ -1,0 +1,14 @@
+port 1500 
+CreateSockets 3
+>TypeRequete 4 
+ Reference 0 
+ NumeroFacture 0 
+ Date 0 
+ Reference 1 
+ Places 2 
+ Prix 0 
+Constructeur Mercedes 
+Modele GLE 
+Puissance 310 
+ Client  
+

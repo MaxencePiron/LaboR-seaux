@@ -1,0 +1,14 @@
+port 1400 
+CreateSockets 3
+>TypeRequete 4 
+ Reference 0 
+ NumeroFacture 0 
+ Date 0 
+ Reference 2 
+ Places 1 
+ Prix 0 
+Constructeur BMW 
+Modele M3 
+Puissance 500 
+ Client  
+
