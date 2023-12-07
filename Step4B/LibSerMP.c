@@ -78,7 +78,7 @@ int FacturationHV(char NomFichier[80],char NomClient[60],time_t Date,int Quantit
     }
 
     fseek(fp, 0, SEEK_END);
-    NumeroFacturation = ftell(fp) / sizeof(struct FactureHV) + 1;
+    NumeroFacturation = ftell(fp) / sizeof(struct FactureHV)+1;
 
     UneFacture.NumeroFacturation = NumeroFacturation;
     strcpy(UneFacture.Acheteur,NomClient);

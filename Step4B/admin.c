@@ -265,7 +265,7 @@ int main()
   char Tampon[80];
   int res;
   struct VehiculeHV UnRecord;
-  int Numero,Reference,Quantite;
+  int Numero,Reference,Quantite,NumeroFacturation;
   char NomClient[60];
   time_t Date;
 
@@ -329,12 +329,10 @@ int main()
             fgets(Tampon, sizeof(Tampon), stdin);
             Quantite = atoi(Tampon);
 
-            // Appel à la fonction de réservation
-            if (ReservationHV("VehiculesHV", Reference, Quantite))
+            if(ReservationHV("VehiculesHV", Reference, Quantite))
             {
-                // La réservation a réussi, effectuons la facturation
                 Date = time(NULL);
-                int NumeroFacturation = FacturationHV("FactureHV", NomClient, Date, Quantite, Reference);
+                NumeroFacturation = FacturationHV("FactureHV",NomClient, Date,Quantite,Reference);
 
                 printf("Trouve, FacturationHV reussie (Numero Facture : %d)\n", NumeroFacturation);
             }
