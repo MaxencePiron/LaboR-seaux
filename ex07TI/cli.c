@@ -47,7 +47,6 @@ int main(int argc, char *argv[])
  memset(&sor,0,sizeof(struct sockaddr_in)) ; 
  
  if (argc!=5)
-  
 {
     printf("cli client portc serveur ports\n") ;
     exit(1) ;
